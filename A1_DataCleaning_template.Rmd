@@ -1,8 +1,10 @@
 ---
 title: "Assignment 1 - Data Cleaning - Instructions"
-author: "[FILL IN YOUR NAME]"
-date: "[FILL IN THE DATE]"
-output: html_document
+author: "Mie Arnau Martinez"
+date: "05.09.2019"
+output:   
+  md_document:
+    variant: markdown_github
 ---
 
 # Assignment 1, Language development in Autism Spectrum Disorder (ASD) - Brushing up your code skills
@@ -70,6 +72,16 @@ Load the three data sets, after downloading them from dropbox and saving them in
 * Word data: https://www.dropbox.com/s/8ng1civpl2aux58/token_train.csv?dl=0
 
 ```{r}
+# Loading data sets 
+demo_train <- read.csv("demo_train.csv", header = T, sep = ",")
+LU_train <- read.csv("LU_train.csv", header = T, sep = ",")
+token_train <- read.csv("token_train.csv", header = T, sep = ",")
+
+# Checking column names
+head(demo_train)
+head(LU_train)
+head(token_train)
+
 
 ```
 
@@ -90,6 +102,10 @@ Tip: look through the chapter on data transformation in R for data science (http
 
 
 ```{r}
+# Changing the column name from Child.ID to SUBJ on the demo train data set
+names(demo_train)[names(demo_train) == "Child.ID"] <- "SUBJ"
+# Doing the same for the visit column
+names(demo_train)[names(demo_train) == "Visit"] <- "VISIT"
 
 ```
 
@@ -99,6 +115,9 @@ Tip: The stringr package is what you need. str_extract () will allow you to extr
 
 
 ```{r}
+# Changing the visits to exclude "visit" and ".".
+LU_train$VISIT <- str_extract(LU_train$VISIT, "\\d")
+token_train$VISIT <- str_extract(token_train$VISIT, "\\d")
 
 
 ```
@@ -111,6 +130,11 @@ Tip: You can either have one line of code for each child name that is to be chan
 
 
 ```{r}
+# Removing all "." from the subject names
+demo_train$SUBJ <- str_remove_all(demo_train$SUBJ, "\\.")
+LU_train$SUBJ <- str_remove_all(LU_train$SUBJ, "\\.")
+token_train$SUBJ <- str_remove_all(token_train$SUBJ, "\\.")
+
 
 ```
 
@@ -147,7 +171,11 @@ Most variables should make sense, here the less intuitive ones.
 Feel free to rename the variables into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ```{r}
+demo_train_subset <- select(demo_train, SUBJ, VISIT, Diagnosis, Ethnicity, Gender, Age, ADOS, MullenRaw, ExpressiveLangRaw, Socialization)
 
+LU_train_subset <- select(LU_train, SUBJ, VISIT, MOT_MLU, CHI_MLU)
+
+token_train_subset <- select(token_train, SUBJ, VISIT, types_MOT, types_CHI, tokens_MOT, tokens_CHI)
 ```
 
 2e. Finally we are ready to merge all the data sets into just one. 
