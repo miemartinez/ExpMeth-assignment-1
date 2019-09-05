@@ -171,6 +171,7 @@ Most variables should make sense, here the less intuitive ones.
 Feel free to rename the variables into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ```{r}
+# Selecting the relevant columns before the merging of data frames.
 demo_train_subset <- select(demo_train, SUBJ, VISIT, Diagnosis, Ethnicity, Gender, Age, ADOS, MullenRaw, ExpressiveLangRaw, Socialization)
 
 LU_train_subset <- select(LU_train, SUBJ, VISIT, MOT_MLU, CHI_MLU)
@@ -185,13 +186,15 @@ Some things to pay attention to:
 * make sure to understand whether (and if so why) there are NAs in the dataset (e.g. some measures were not taken at all visits, some recordings were lost or permission to use was withdrawn)
 
 ```{r}
-
+# Merging the data sets in two steps
+train2 <- merge(demo_train_subset, LU_train_subset)
+train <- merge(token_train_subset, train2)
 
 ```
 
 
 2f. Only using clinical measures from Visit 1
-In order for our models to be useful, we want to miimize the need to actually test children as they develop. In other words, we would like to be able to understand and predict the children's linguistic development after only having tested them once. Therefore we need to make sure that our ADOS, MullenRaw, ExpressiveLangRaw and Socialization variables are reporting (for all visits) only the scores from visit 1.
+In order for our models to be useful, we want to minimize the need to actually test children as they develop. In other words, we would like to be able to understand and predict the children's linguistic development after only having tested them once. Therefore we need to make sure that our ADOS, MullenRaw, ExpressiveLangRaw and Socialization variables are reporting (for all visits) only the scores from visit 1.
 
 A possible way to do so:
 * create a new dataset with only visit 1, child id and the 4 relevant clinical variables to be merged with the old dataset
@@ -201,6 +204,20 @@ A possible way to do so:
 
 
 ```{r}
+# Making the new data frame for visit 1
+visit1 <- train[train$VISIT == "1",]
+
+# Selecting the relevant columns
+visit1 <- select(visit1, SUBJ, ADOS, MullenRaw, ExpressiveLangRaw, Socialization)
+
+# Changing the names of the columns
+colnames(visit1)[2] <- "ADOS1"
+colnames(visit1)[3] <- "MullenRaw1"
+colnames(visit1)[4] <- "ExpressiveLangRaw1"
+colnames(visit1)[5] <- "Socialization1"
+
+# Merging the new data frame with the old one
+mergedTrain <- merge(visit1, train)
 
 ```
 
@@ -212,6 +229,26 @@ Now we want to
 * Save the data set using into a csv file. Hint: look into write.csv()
 
 ```{r}
+# Anonymizing the participants by giving them numbers instead of names
+mergedTrain$SUBJ <- as.factor(mergedTrain$SUBJ)
+
+# Making a list with numbers for all the participants
+a <- seq(1, 61)
+
+# Assigning the list to the subjects
+levels(mergedTrain$SUBJ) <- a
+
+
+# Changing the variables for gender to F and M
+mergedTrain$Gender[mergedTrain$Gender == "1"] <- "F"
+mergedTrain$Gender[mergedTrain$Gender == "2"] <- "M"
+
+# Changing the variables for diagnosis to ASD and TD
+mergedTrain$Diagnosis <- as.character(mergedTrain$Diagnosis)
+mergedTrain$Diagnosis[mergedTrain$Diagnosis == "A"] <- "ASD"
+mergedTrain$Diagnosis[mergedTrain$Diagnosis == "B"] <- "TD"
+
+write.csv(mergedTrain, file = "train.csv")
 
 ```
 
